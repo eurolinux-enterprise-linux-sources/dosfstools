@@ -1,13 +1,14 @@
 Name: dosfstools
 Summary: Utilities for making and checking MS-DOS FAT filesystems on Linux
 Version: 3.0.20
-Release: 4%{?dist}
+Release: 9%{?dist}
 License: GPLv3+
 Group: Applications/System
 Source0: http://www.daniel-baumann.ch/files/software/dosfstools/%{name}-%{version}.tar.xz
 URL: http://www.daniel-baumann.ch/software/dosfstools/
 # Sent upstream
 Patch0: dosfstools-3.0.20-manpage-fix.patch
+Patch1: dosfstools-3.0.20-fix-big-endian.patch
 Buildroot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 %description
@@ -18,13 +19,14 @@ drives or on floppies.
 %prep
 %setup -q
 %patch0 -p1 -b .manpage-fix
+%patch1 -p1 -b .fix-big-endian
 
 %build
 make %{?_smp_mflags} CFLAGS="$RPM_OPT_FLAGS -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -fno-strict-aliasing"
 
 %install
 rm -rf %{buildroot}
-make DESTDIR=%{buildroot} install-bin install-man install-symlinks PREFIX=%{_prefix} SBINDIR=/sbin
+make DESTDIR=%{buildroot} install-bin install-man install-symlinks PREFIX=%{_prefix}
 
 %clean
 rm -rf %{buildroot}
@@ -32,10 +34,30 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root,-)
 %doc ChangeLog COPYING doc/*-2.x
-/sbin/*
-%{_mandir}/*
+%{_sbindir}/*
+%{_mandir}/man8/*
+%{_mandir}/de/man8/*
 
 %changelog
+* Tue Mar  4 2014 Jaroslav Škarvada <jskarvad@redhat.com> - 3.0.20-9
+- Fixed bogus dates in changelog (best effort)
+- Fixed man pages packaging
+  Resolves: rhbz#1057562
+
+* Fri Jan 24 2014 Daniel Mach <dmach@redhat.com> - 3.0.20-8
+- Mass rebuild 2014-01-24
+
+* Fri Dec 27 2013 Daniel Mach <dmach@redhat.com> - 3.0.20-7
+- Mass rebuild 2013-12-27
+
+* Fri Nov 22 2013 Jaroslav Škarvada <jskarvad@redhat.com> - 3.0.20-6
+- Used /usr/sbin directory instead of /sbin (spotted by rpmdiff)
+  Related: rhbz#1033599
+
+* Fri Nov 22 2013 Jaroslav Škarvada <jskarvad@redhat.com> - 3.0.20-5
+- Fixed dosfsck on big endian platforms
+  Resolves: rhbz#1033599
+
 * Thu Aug  8 2013 Jaroslav Škarvada <jskarvad@redhat.com> - 3.0.20-4
 - Fixed sources URL
 
@@ -184,7 +206,7 @@ rm -rf %{buildroot}
 * Tue Feb 07 2006 Jesse Keating <jkeating@redhat.com> - 2.11-4.1
 - rebuilt for new gcc4.1 snapshot and glibc changes
 
-* Sun Dec 16 2005 Jakub Jelinek <jakub@redhat.com> 2.11-4
+* Fri Dec 16 2005 Jakub Jelinek <jakub@redhat.com> 2.11-4
 - rebuilt with GCC 4.1
 - make it build with -D_FORTIFY_SOURCE=2
 
@@ -265,7 +287,7 @@ rm -rf %{buildroot}
 * Wed Jul 12 2000 Prospector <bugzilla@redhat.com>
 - automatic rebuild
 
-* Fri Jun 17 2000 Bill Nottingham <notting@redhat.com>
+* Sat Jun 17 2000 Bill Nottingham <notting@redhat.com>
 - hard link mkdosfs
 
 * Thu Jun 15 2000 Matt Wilson <msw@redhat.com>
