@@ -1,12 +1,20 @@
 Name: dosfstools
 Summary: Utilities for making and checking MS-DOS FAT filesystems on Linux
 Version: 3.0.9
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv3+
 Group: Applications/System
 Source0: http://www.daniel-baumann.ch/software/dosfstools/%{name}-%{version}.tar.bz2
 URL: http://www.daniel-baumann.ch/software/dosfstools/
 Buildroot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+# Fix dosfsck and dosfslabel on s390x (#624596)
+Patch0: dosfstools-3.0.9-s390x-unalign.patch
+# Fix buffer overflow in alloc_rootdir_entry (#677789)
+Patch1: dosfstools-3.0.9-fix-alloc-rootdir-entry.patch
+# Fix dosfslabel on FAT32 (#688128)
+Patch2: dosfstools-3.0.9-dosfslabel-fat32.patch
+# Fix device partitions detection (#709266)
+Patch3: dosfstools-3.0.9-dev-detect-fix.patch
 
 %description
 The dosfstools package includes the mkdosfs and dosfsck utilities,
@@ -15,6 +23,10 @@ drives or on floppies.
 
 %prep
 %setup -q
+%patch0 -p1 -b .s390x-unalign
+%patch1 -p1 -b .fix-alloc-rootdir-entry
+%patch2 -p1 -b .dosfslabel-fat32
+%patch3 -p1 -b .dev-detect-fix
 
 %build
 make %{?_smp_mflags} CFLAGS="$RPM_OPT_FLAGS -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -fno-strict-aliasing"
@@ -33,6 +45,16 @@ rm -rf %{buildroot}
 %{_mandir}/man8/*
 
 %changelog
+* Tue Jun 21 2011 Jaroslav Škarvada <jskarvad@redhat.com> - 3.0.9-4
+- Fixed dosfsck and dosfslabel on s390x (s390x-unalign patch)
+  Resolves: rhbz#624596
+- Fixed buffer overflow in alloc_rootdir_entry (fix-alloc-rootdir-entry patch)
+  Resolves: rhbz#677789
+- Fixed dosfslabel on FAT32 (dosfslabel-fat32 patch)
+  Resolves: rhbz#688128
+- Fixed device partitions detection (dev-detect-fix patch)
+  Resolves: rhbz#709266
+
 * Wed May 26 2010 Jaroslav Škarvada <jskarvad@redhat.com> - 3.0.9-3
 - Rebuilt with -fno-strict-aliasing (#596030)
 
